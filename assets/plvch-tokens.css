@@ -1,0 +1,230 @@
+/* ============================================================
+   plvch — colors & type
+   Calm, quiet confidence. Modern, clean, minimal.
+   Dark blue + dark green on warm off-white.
+   ============================================================ */
+
+/* ---------- Fonts ----------
+   Ideal: Neue Haas Grotesk Display Pro (licensed).
+   Substitute: Inter (open source, very close metrics).
+   If/when you license Neue Haas, swap the @font-face below
+   and change --font-display / --font-text accordingly.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ---------- Brand palette (raw) ---------- */
+  --plvch-navy-900: #061a35;   /* deepest navy — footers, dark surfaces */
+  --plvch-navy-800: #0b2545;   /* primary brand navy */
+  --plvch-navy-700: #13345f;   /* hover state for navy */
+  --plvch-navy-500: #2f5790;   /* accent navy, links on light */
+
+  --plvch-forest-900: #0f2a20; /* deepest forest */
+  --plvch-forest-800: #1b4332; /* primary brand forest */
+  --plvch-forest-700: #245a44; /* hover */
+  --plvch-forest-500: #3e7a5f; /* accent forest */
+
+  /* Warm neutral system (paper-feeling) */
+  --plvch-paper:     #f6f4ef;  /* canonical background */
+  --plvch-paper-2:   #ecebe4;  /* recessed surface (cards, table rows) */
+  --plvch-paper-3:   #ddd9cc;  /* divider on paper, soft chip bg */
+  --plvch-bone:      #fbfaf6;  /* near-white for elevated cards */
+  --plvch-ink-900:   #0a0f14;  /* primary text on light */
+  --plvch-ink-700:   #2a3038;  /* body text */
+  --plvch-ink-500:   #5a6470;  /* secondary / meta */
+  --plvch-ink-300:   #98a1ad;  /* tertiary, disabled */
+
+  /* Subtle support */
+  --plvch-ochre:     #b08b3a;  /* accent for highlighted metric / pull-quote */
+  --plvch-claret:    #7a2e2e;  /* negative state (sparingly) */
+  --plvch-sky:       #b8c7d9;  /* tint for charts */
+
+  /* ---------- Semantic colors ---------- */
+  --bg:               var(--plvch-paper);
+  --bg-elevated:      var(--plvch-bone);
+  --bg-recessed:      var(--plvch-paper-2);
+  --bg-inverse:       var(--plvch-navy-900);
+
+  --fg-1:             var(--plvch-ink-900);   /* primary text */
+  --fg-2:             var(--plvch-ink-700);   /* body */
+  --fg-3:             var(--plvch-ink-500);   /* meta, captions */
+  --fg-4:             var(--plvch-ink-300);   /* disabled */
+  --fg-on-dark:       var(--plvch-paper);
+  --fg-on-dark-2:     #b9c1cc;
+
+  --brand-primary:    var(--plvch-navy-800);
+  --brand-secondary:  var(--plvch-forest-800);
+  --brand-accent:     var(--plvch-ochre);
+
+  --link:             var(--plvch-navy-800);
+  --link-hover:       var(--plvch-forest-800);
+
+  --border-1:         #d8d3c4;  /* default hairline on paper */
+  --border-2:         #c2bca8;  /* stronger divider */
+  --border-strong:    var(--plvch-ink-900);
+
+  --success:          var(--plvch-forest-800);
+  --warning:          var(--plvch-ochre);
+  --danger:           var(--plvch-claret);
+
+  /* ---------- Type system ---------- */
+  --font-display: 'Inter', 'Neue Haas Grotesk Display Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-text:    'Inter', 'Neue Haas Grotesk Text Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --fw-light:    300;
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* Type scale — perfect fourth-ish, tuned for documents.
+     Designed for 16px base, but we use rem for accessibility. */
+  --fs-display: 64px;   /* hero numerals, deck title */
+  --fs-h1:      40px;
+  --fs-h2:      28px;
+  --fs-h3:      20px;
+  --fs-h4:      16px;
+  --fs-body:    15px;
+  --fs-small:   13px;
+  --fs-micro:   11px;   /* legal fine print, table labels */
+
+  --lh-tight:   1.05;   /* display */
+  --lh-snug:    1.2;    /* headings */
+  --lh-normal:  1.5;    /* body */
+  --lh-loose:   1.65;   /* long-form policy / contract */
+
+  --ls-display: -0.02em;
+  --ls-heading: -0.01em;
+  --ls-body:    0em;
+  --ls-caps:    0.12em;  /* eyebrow labels */
+
+  /* ---------- Spacing (4px base) ---------- */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+  --space-9:  96px;
+  --space-10: 128px;
+
+  /* ---------- Radii ----------
+     Restrained. Documents are sharp; UI is slightly soft. */
+  --radius-0: 0;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 8px;
+  --radius-4: 12px;
+  --radius-pill: 999px;
+
+  /* ---------- Shadows ----------
+     Very subtle. Documents lay flat; UI lifts by 1 level max. */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(6, 26, 53, 0.06), 0 1px 1px rgba(6, 26, 53, 0.04);
+  --shadow-2: 0 4px 16px rgba(6, 26, 53, 0.08), 0 1px 2px rgba(6, 26, 53, 0.04);
+  --shadow-3: 0 12px 40px rgba(6, 26, 53, 0.12);
+  --shadow-inset: inset 0 0 0 1px var(--border-1);
+
+  /* ---------- Motion ---------- */
+  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:    140ms;
+  --dur-base:    220ms;
+  --dur-slow:    420ms;
+
+  /* ---------- Layout ---------- */
+  --content-max: 1120px;
+  --doc-max:     720px;   /* A4-ish reading width */
+  --grid-gutter: 24px;
+}
+
+/* ---------- Semantic element styles ---------- */
+html, body {
+  background: var(--bg);
+  color: var(--fg-1);
+  font-family: var(--font-text);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  letter-spacing: var(--ls-body);
+  font-feature-settings: "ss01", "cv11", "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-medium);
+  color: var(--fg-1);
+  letter-spacing: var(--ls-heading);
+  margin: 0;
+  text-wrap: balance;
+}
+h1 { font-size: var(--fs-h1); line-height: var(--lh-snug); letter-spacing: var(--ls-display); font-weight: var(--fw-semibold); }
+h2 { font-size: var(--fs-h2); line-height: var(--lh-snug); }
+h3 { font-size: var(--fs-h3); line-height: var(--lh-snug); }
+h4 { font-size: var(--fs-h4); line-height: var(--lh-normal); font-weight: var(--fw-semibold); }
+
+p   { margin: 0; color: var(--fg-2); text-wrap: pretty; }
+small { font-size: var(--fs-small); color: var(--fg-3); }
+strong { font-weight: var(--fw-semibold); color: var(--fg-1); }
+em { font-style: italic; }
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border-2);
+  transition: color var(--dur-fast) var(--ease-out),
+              text-decoration-color var(--dur-fast) var(--ease-out);
+}
+a:hover {
+  color: var(--link-hover);
+  text-decoration-color: currentColor;
+}
+
+code, pre, .mono, .tabular {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum", "zero";
+}
+
+/* Tabular numerals — essential for invoices, reports, projections */
+.tnum, table, .figures {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Eyebrow / label */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+/* Rule — used heavily in documents */
+hr, .rule {
+  border: 0;
+  border-top: 1px solid var(--border-1);
+  margin: var(--space-5) 0;
+}
+.rule-strong { border-top-color: var(--border-strong); }
+
+/* ---------- Selection ---------- */
+::selection {
+  background: var(--plvch-navy-800);
+  color: var(--plvch-paper);
+}
+
+/* ---------- Focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--plvch-navy-800);
+  outline-offset: 2px;
+  border-radius: var(--radius-1);
+}

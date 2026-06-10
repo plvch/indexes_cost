@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The ETF Fee Paradox — what the average dollar pays vs what the average fund charges</title>
+<link rel="stylesheet" href="assets/plvch-tokens.css" />
+<style>
+  /* =========================================================
+     The ETF Fee Paradox — long-form research note
+     Built on plvch tokens. Light/dark themes via [data-theme].
+     Same design language as Open Indexing (Vol. 01).
+     ========================================================= */
+
+  :root[data-theme="light"] {
+    --oi-page-bg:        var(--plvch-paper);
+    --oi-surface:        var(--plvch-paper);
+    --oi-surface-2:      var(--plvch-bone);
+    --oi-surface-sunk:   var(--plvch-paper-2);
+    --oi-ink-1:          var(--plvch-ink-900);
+    --oi-ink-2:          var(--plvch-ink-700);
+    --oi-ink-3:          var(--plvch-ink-500);
+    --oi-ink-4:          var(--plvch-ink-300);
+    --oi-rule:           #d8d3c4;
+    --oi-rule-strong:    var(--plvch-ink-900);
+    --oi-brand:          var(--plvch-navy-800);
+    --oi-brand-2:        var(--plvch-forest-800);
+    --oi-accent:         var(--plvch-ochre);
+    --oi-highlight:      #f1e6c4;
+    --oi-chip-bg:        var(--plvch-paper-2);
+    --oi-shadow-figure:  0 1px 2px rgba(6,26,53,0.05), 0 10px 30px -16px rgba(6,26,53,0.10);
+  }
+
+  :root[data-theme="dark"] {
+    --oi-page-bg:        #08172e;
+    --oi-surface:        #08172e;
+    --oi-surface-2:      #0e2243;
+    --oi-surface-sunk:   #0b1d39;
+    --oi-ink-1:          #f1ede2;
+    --oi-ink-2:          #c6ccd6;
+    --oi-ink-3:          #8993a3;
+    --oi-ink-4:          #5a6678;
+    --oi-rule:           #1a3056;
+    --oi-rule-strong:    #f1ede2;
+    --oi-brand:          #d9e0ec;
+    --oi-brand-2:        #6ea88a;
+    --oi-accent:         #d4a857;
+    --oi-highlight:      #2a2a14;
+    --oi-chip-bg:        #0e2243;
+    --oi-shadow-figure:  0 0 0 1px var(--oi-rule), 0 18px 40px -20px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  html[data-theme="light"], html[data-theme="light"] body { background: var(--plvch-paper) !important; }
+  html[data-theme="dark"],  html[data-theme="dark"]  body { background: #08172e !important; }
+  body {
+    color: var(--oi-ink-1);
+    transition: background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+    margin: 0;
+    font-family: var(--font-text);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .wrap {
+    --col: 720px;
+    --col-w: 940px;
+    --col-bleed: 1120px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 32px;
+    max-width: var(--col-bleed);
+  }
+  .col      { max-width: var(--col); margin-inline: auto; }
+  .col-wide { max-width: var(--col-w); margin-inline: auto; }
+
+  /* ---------------- Masthead ---------------- */
+  .masthead {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--oi-page-bg);
+    border-bottom: 1px solid var(--oi-rule);
+    backdrop-filter: blur(8px);
+  }
+  .masthead-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px; max-width: var(--col-bleed); margin: 0 auto; gap: 24px;
+  }
+  .wordmark {
+    font-family: var(--font-display); font-size: 18px; font-weight: 500;
+    letter-spacing: -0.04em; color: var(--oi-brand); text-decoration: none;
+  }
+  .mh-meta {
+    display: flex; gap: 32px; align-items: center;
+    font-family: var(--font-display); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--oi-ink-3);
+  }
+  @media (max-width: 720px) { .mh-meta .hide-sm { display: none; } }
+
+  .theme-toggle {
+    display: inline-flex; border: 1px solid var(--oi-rule);
+    border-radius: 999px; padding: 2px; background: var(--oi-surface);
+  }
+  .theme-toggle button {
+    background: transparent; border: 0; cursor: pointer;
+    font-family: var(--font-display); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--oi-ink-3);
+    padding: 6px 12px; border-radius: 999px;
+    transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+  }
+  .theme-toggle button.active { background: var(--oi-rule-strong); color: var(--oi-page-bg); }
+  .theme-toggle button:hover:not(.active) { color: var(--oi-ink-1); }
+
+  /* ---------------- Cover ---------------- */
+  .cover { padding: 80px 0 48px; }
+  .eyebrow {
+    font-family: var(--font-display); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--oi-ink-3);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .eyebrow::before {
+    content: ""; width: 24px; height: 1px; background: var(--oi-rule-strong); display: inline-block;
+  }
+  .eyebrow.brand { color: var(--oi-brand-2); }
+  .eyebrow.brand::before { background: var(--oi-brand-2); }
+
+  .cover h1 {
+    font-family: var(--font-display);
+    font-size: clamp(38px, 4.8vw, 48px);
+    font-weight: 500; letter-spacing: -0.03em; line-height: 1.02;
+    margin: 14px 0 0; color: var(--oi-ink-1); text-wrap: balance;
+  }
+  .cover .standfirst {
+    font-family: var(--font-display); font-size: 19px; line-height: 1.45;
+    font-weight: 400; color: var(--oi-ink-2); letter-spacing: -0.005em;
+    margin: 20px 0 0; max-width: 660px; text-wrap: balance;
+  }
+  .cover .byline {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 24px;
+    margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--oi-rule);
+    font-family: var(--font-display);
+  }
+  .cover .byline .k {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--oi-ink-3);
+  }
+  .cover .byline .v {
+    margin-top: 6px; font-size: 14px; color: var(--oi-ink-1); font-feature-settings: "tnum";
+  }
+  @media (max-width: 720px) {
+    .cover .byline { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+  }
+
+  /* ---------------- Section anatomy ---------------- */
+  section.essay { padding: 32px 0; }
+  section.essay + section.essay { padding-top: 0; }
+
+  .section-rule {
+    display: grid; grid-template-columns: 1fr 1fr; align-items: baseline; gap: 24px;
+    padding: 16px 0; border-top: 1px solid var(--oi-rule-strong); margin: 64px 0 32px;
+  }
+  .section-rule .n { font-family: var(--font-mono); font-size: 12px; color: var(--oi-ink-3); }
+  .section-rule .t {
+    font-family: var(--font-display); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--oi-ink-1); text-align: right;
+  }
+
+  h2.section-title {
+    font-family: var(--font-display); font-size: 26px; line-height: 1.2;
+    letter-spacing: -0.015em; font-weight: 500; margin: 0 0 24px;
+    color: var(--oi-ink-1); text-wrap: balance;
+  }
+  h3.sub-title {
+    font-family: var(--font-display); font-size: 18px; line-height: 1.35;
+    letter-spacing: -0.005em; font-weight: 600; margin: 36px 0 14px; color: var(--oi-ink-1);
+  }
+
+  /* ---------------- Prose ---------------- */
+  .prose p { margin: 0 0 18px; color: var(--oi-ink-2); text-wrap: pretty; }
+  .prose p strong { color: var(--oi-ink-1); font-weight: 600; }
+  .prose a {
+    color: var(--oi-ink-1); text-decoration: underline;
+    text-decoration-color: var(--oi-rule); text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+  .prose a:hover { text-decoration-color: currentColor; color: var(--oi-brand-2); }
+  .prose.lead p:first-of-type::first-letter {
+    font-family: var(--font-display); font-weight: 500; float: left;
+    font-size: 3em; line-height: 0.95; margin: 0.06em 0.1em 0 -0.02em;
+    color: var(--oi-ink-1); letter-spacing: -0.02em;
+  }
+  .num, .stat, .table-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+  /* ---------------- Big number callouts ---------------- */
+  .stat-row {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+    grid-template-rows: auto auto 1fr; gap: 0; margin: 40px auto;
+    border-top: 1px solid var(--oi-rule-strong); border-bottom: 1px solid var(--oi-rule);
+  }
+  .stat-row .stat {
+    display: grid; grid-template-rows: subgrid; grid-row: span 3;
+    padding: 24px 20px 28px; border-right: 1px solid var(--oi-rule);
+  }
+  .stat-row .stat:last-child { border-right: 0; }
+  .stat .stat-k {
+    font-family: var(--font-display); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--oi-ink-3);
+  }
+  .stat .stat-v {
+    font-family: var(--font-display); font-size: 26px; font-weight: 500;
+    letter-spacing: -0.015em; line-height: 1.05; margin: 6px 0 6px;
+    color: var(--oi-ink-1); font-variant-numeric: tabular-nums;
+  }
+  .stat .stat-v.accent { color: var(--oi-brand-2); }
+  .stat .stat-c { font-size: 12px; line-height: 1.45; color: var(--oi-ink-3); }
+  @media (max-width: 720px) {
+    .stat-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .stat-row .stat:nth-child(2) { border-right: 0; }
+    .stat-row .stat:nth-child(-n+2) { border-bottom: 1px solid var(--oi-rule); }
+  }
+
+  /* ---------------- Figure (charts) ---------------- */
+  figure.fig { margin: 40px auto; max-width: var(--col-w); }
+  figure.fig .fig-head {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: baseline;
+    padding: 0 0 12px; border-bottom: 1px solid var(--oi-rule); margin-bottom: 0;
+  }
+  figure.fig .fig-num { font-family: var(--font-mono); font-size: 11px; color: var(--oi-ink-3); }
+  figure.fig .fig-title {
+    font-family: var(--font-display); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--oi-ink-1);
+  }
+  figure.fig .fig-source {
+    font-family: var(--font-display); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--oi-ink-3);
+  }
+  figure.fig .fig-body {
+    background: var(--oi-surface); border: 1px solid var(--oi-rule); border-top: 0;
+    padding: 24px; box-shadow: var(--oi-shadow-figure);
+  }
+  figure.fig figcaption {
+    margin-top: 12px; font-size: 13px; color: var(--oi-ink-3); line-height: 1.5; max-width: 640px;
+  }
+
+  /* Legend chips, shared across figures */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px; margin: 0 0 18px;
+    font-family: var(--font-display); font-size: 11.5px; font-weight: 500;
+    letter-spacing: 0.03em; color: var(--oi-ink-3);
+  }
+  .legend .li { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .sw { width: 14px; height: 9px; display: inline-block; }
+  .legend .sw.line { height: 2px; }
+
+  /* ---------------- Fig 01: bucket grouped bars ---------------- */
+  .bk-chart { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+  .bk-plot { position: relative; height: 300px; padding: 26px 8px 40px 44px; }
+  .bk-grid { position: absolute; inset: 26px 8px 40px 44px; pointer-events: none; }
+  .bk-gline { position: absolute; left: 0; right: 0; height: 1px; background: var(--oi-rule); }
+  .bk-glabel {
+    position: absolute; left: -44px; transform: translateY(50%);
+    width: 36px; text-align: right; font-size: 10.5px; color: var(--oi-ink-3); line-height: 1;
+  }
+  .bk-groups {
+    position: relative; height: 100%;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 26px; align-items: end;
+  }
+  .bk-group { position: relative; height: 100%; display: flex; align-items: flex-end; gap: 5px; }
+  .bk-bar { position: relative; flex: 1; height: var(--h); }
+  .bk-bar.count { background: var(--oi-ink-4); }
+  .bk-bar.aum   { background: var(--oi-brand); }
+  .bk-bar.rev   { background: var(--oi-brand-2); }
+  .bk-bar .v {
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    margin-bottom: 5px; font-size: 10.5px; font-weight: 600;
+    color: var(--oi-ink-2); white-space: nowrap;
+  }
+  .bk-group .x {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    margin-top: 10px; font-size: 11px; color: var(--oi-ink-3); white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .bk-plot { height: 240px; padding-left: 36px; }
+    .bk-grid { inset-inline-start: 36px; }
+    .bk-glabel { left: -36px; }
+    .bk-groups { gap: 10px; }
+    .bk-bar .v { font-size: 8.5px; }
+    .bk-group .x { font-size: 9px; }
+  }
+
+  /* ---------------- SVG line charts (Figs 02, 04) ---------------- */
+  .lc-svg { display: block; width: 100%; height: auto; }
+  .lc-svg .grid   { stroke: var(--oi-rule); stroke-width: 1; }
+  .lc-svg .axis   { fill: var(--oi-ink-3); font-family: var(--font-display); font-size: 11px; }
+  .lc-svg .lbl    { font-family: var(--font-display); font-size: 12px; font-weight: 600; }
+  .lc-svg .lbl-sub { font-family: var(--font-display); font-size: 10.5px; font-weight: 400; }
+  .lc-svg .l-med  { stroke: var(--oi-brand);  fill: none; stroke-width: 2.25; stroke-linejoin: round; }
+  .lc-svg .l-ew   { stroke: var(--oi-brand);  fill: none; stroke-width: 1.25; stroke-dasharray: 3 4; opacity: .55; }
+  .lc-svg .l-aw   { stroke: var(--oi-brand-2); fill: none; stroke-width: 2.25; stroke-linejoin: round; }
+  .lc-svg .l-act  { stroke: var(--oi-accent); fill: none; stroke-width: 1.75; stroke-linejoin: round; }
+  .lc-svg .l-pas  { stroke: var(--oi-brand-2); fill: none; stroke-width: 1.75; stroke-linejoin: round; }
+  .lc-svg .t-med  { fill: var(--oi-brand); }
+  .lc-svg .t-aw   { fill: var(--oi-brand-2); }
+  .lc-svg .t-act  { fill: var(--oi-accent); }
+  .lc-svg .t-pas  { fill: var(--oi-brand-2); }
+  .lc-svg .dot-med { fill: var(--oi-brand); }
+  .lc-svg .dot-aw  { fill: var(--oi-brand-2); }
+  .lc-svg .gap-brace { stroke: var(--oi-ink-3); stroke-width: 1; fill: none; }
+  .lc-svg .gap-note  { fill: var(--oi-ink-3); font-family: var(--font-display); font-size: 11px; }
+
+  /* ---------------- Fig 03: launch stacked bars ---------------- */
+  .lm-chart { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+  .lm-plot { position: relative; height: 300px; padding: 30px 8px 56px 44px; }
+  .lm-grid { position: absolute; inset: 30px 8px 56px 44px; pointer-events: none; }
+  .lm-gline { position: absolute; left: 0; right: 0; height: 1px; background: var(--oi-rule); }
+  .lm-glabel {
+    position: absolute; left: -44px; transform: translateY(50%);
+    width: 36px; text-align: right; font-size: 10.5px; color: var(--oi-ink-3); line-height: 1;
+  }
+  .lm-bars {
+    position: relative; height: 100%;
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; align-items: end;
+  }
+  .lm-bar { position: relative; height: var(--h); display: flex; flex-direction: column; }
+  .lm-bar .seg-act { background: var(--oi-accent); height: var(--act); }
+  .lm-bar .seg-pas { background: var(--oi-brand); flex: 1; }
+  .lm-bar .v {
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    margin-bottom: 6px; font-size: 11px; font-weight: 600; color: var(--oi-ink-1); white-space: nowrap;
+  }
+  .lm-bar .x {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    margin-top: 8px; font-size: 11px; color: var(--oi-ink-3); line-height: 1.4;
+    text-align: center; white-space: nowrap;
+  }
+  .lm-bar .x .share { display: block; font-weight: 600; color: var(--oi-accent); }
+  @media (max-width: 600px) {
+    .lm-plot { height: 250px; padding-left: 36px; }
+    .lm-grid { inset-inline-start: 36px; }
+    .lm-glabel { left: -36px; }
+    .lm-bars { gap: 8px; }
+    .lm-bar .v { font-size: 9.5px; }
+    .lm-bar .x { font-size: 9px; }
+  }
+
+  /* ---------------- Fig 06: sponsor arrows (book -> launch) ---------------- */
+  .db { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+  .db-row {
+    display: grid; grid-template-columns: 150px 1fr 54px; gap: 18px; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--oi-rule);
+  }
+  .db-name { font-size: 13px; font-weight: 600; color: var(--oi-ink-1); letter-spacing: -0.005em; }
+  .db-name small { display: block; font-size: 10.5px; font-weight: 400; color: var(--oi-ink-3); letter-spacing: 0.02em; }
+  .db-track { position: relative; height: 32px; --dir: var(--oi-brand-2); }
+  .db-track.down { --dir: var(--oi-ink-3); }
+  .db-track::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%;
+    height: 1px; background: var(--oi-rule);
+  }
+  .db-link {
+    position: absolute; top: 50%; height: 2.5px; transform: translateY(-50%);
+    background: var(--dir);
+  }
+  .db-track:not(.down) .db-link { left: var(--a); width: calc(var(--b) - var(--a) - 0.6%); }
+  .db-track.down       .db-link { left: calc(var(--b) + 0.6%); width: calc(var(--a) - var(--b) - 0.6%); }
+  .db-arrow {
+    position: absolute; top: 50%; left: var(--b);
+    width: 0; height: 0; border: 5.5px solid transparent;
+  }
+  .db-track:not(.down) .db-arrow { border-left: 8px solid var(--dir); transform: translate(-2px, -50%); }
+  .db-track.down       .db-arrow { border-right: 8px solid var(--dir); transform: translate(-7px, -50%); }
+  .db-dot {
+    position: absolute; top: 50%; left: var(--a); width: 10px; height: 10px;
+    border-radius: 50%; transform: translate(-50%, -50%); background: var(--oi-brand);
+  }
+  .db-val {
+    position: absolute; top: 50%; transform: translate(-50%, -200%);
+    font-size: 10.5px; font-weight: 600; white-space: nowrap;
+  }
+  .db-val.book   { left: var(--a); color: var(--oi-brand); }
+  .db-val.launch { left: var(--b); color: var(--dir); }
+  .db-val.below  { transform: translate(-50%, 100%); }
+  .db-mult {
+    font-family: var(--font-mono); font-size: 12px; text-align: right;
+    color: var(--oi-brand-2); font-weight: 500;
+  }
+  .db-mult.down { color: var(--oi-ink-3); }
+  .db-row.mkt {
+    border-bottom: 0; border-top: 1px solid var(--oi-rule-strong);
+    background: var(--oi-highlight); margin-top: 6px; padding: 14px 8px;
+  }
+  .db-row.mkt .db-name, .db-row.mkt .db-mult { font-weight: 700; }
+  .db-row.mkt .db-track::before { background: color-mix(in oklab, var(--oi-ink-4) 40%, transparent); }
+  .db-note {
+    position: absolute; top: 50%; transform: translateY(-200%);
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--oi-ink-3); white-space: nowrap;
+  }
+  .db-axis {
+    display: grid; grid-template-columns: 150px 1fr 54px; gap: 18px; margin-top: 8px;
+  }
+  .db-axis .scale {
+    position: relative; height: 16px;
+    font-size: 10px; color: var(--oi-ink-3);
+  }
+  .db-axis .scale span { position: absolute; transform: translateX(-50%); }
+  @media (max-width: 600px) {
+    .db-row, .db-axis { grid-template-columns: 86px 1fr 36px; gap: 10px; }
+    .db-name { font-size: 11px; }
+    .db-name small { display: none; }
+    .db-val { font-size: 9px; }
+    .db-mult { font-size: 10px; }
+    .db-note { display: none; }
+  }
+
+  /* ---------------- Fig 06: sponsor table ---------------- */
+  table.spon {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--font-display); font-size: 13.5px; font-variant-numeric: tabular-nums;
+  }
+  table.spon th {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--oi-ink-3); text-align: right; padding: 0 12px 10px;
+    border-bottom: 1px solid var(--oi-rule-strong); white-space: nowrap;
+  }
+  table.spon th:first-child { text-align: left; padding-left: 0; }
+  table.spon td {
+    padding: 9px 12px; text-align: right; color: var(--oi-ink-2);
+    border-bottom: 1px solid var(--oi-rule); white-space: nowrap;
+  }
+  table.spon td:first-child { text-align: left; padding-left: 0; font-weight: 600; color: var(--oi-ink-1); }
+  table.spon td.hi { color: var(--oi-brand-2); font-weight: 600; }
+  table.spon tr.mkt td {
+    border-top: 1px solid var(--oi-rule-strong); border-bottom: 0;
+    background: var(--oi-highlight); font-weight: 600; color: var(--oi-ink-1);
+  }
+  table.spon tr.mkt td:first-child { padding-left: 8px; }
+  table.spon tr.mkt td:last-child { padding-right: 8px; }
+  .tbl-scroll { overflow-x: auto; }
+  @media (max-width: 600px) {
+    table.spon { font-size: 11.5px; }
+    table.spon td, table.spon th { padding: 7px 8px; }
+  }
+
+  /* ---------------- Takeaways ---------------- */
+  .takeaways { margin: 8px 0 40px; }
+  .takeaways .tk {
+    padding: 24px 0; border-top: 1px solid var(--oi-rule);
+    display: grid; grid-template-columns: 44px 1fr; gap: 18px; align-items: baseline;
+  }
+  .takeaways .tk:first-of-type { border-top: 0; padding-top: 8px; }
+  .takeaways .tk .n { font-family: var(--font-mono); font-size: 13px; color: var(--oi-brand-2); }
+  .takeaways .tk h3 {
+    font-family: var(--font-display); font-size: 17px; font-weight: 600;
+    letter-spacing: -0.005em; margin: 0 0 8px; color: var(--oi-ink-1);
+  }
+  .takeaways .tk p { margin: 0; font-size: 15.5px; color: var(--oi-ink-2); }
+
+  /* ---------------- Methods ---------------- */
+  .methods {
+    margin: 64px auto 0; padding: 28px 0 8px;
+    border-top: 1px solid var(--oi-rule-strong);
+  }
+  .methods h4 {
+    font-family: var(--font-display); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--oi-ink-1); margin: 0 0 14px;
+  }
+  .methods p, .methods li { font-size: 13px; line-height: 1.6; color: var(--oi-ink-3); }
+  .methods p { margin: 0 0 10px; }
+  .methods ul { margin: 0; padding-left: 18px; }
+  .methods li { margin-bottom: 6px; }
+
+  /* ---------------- About & contact ---------------- */
+  .end-matter {
+    margin-top: 72px; padding: 28px 0 32px;
+    border-top: 1px solid var(--oi-rule-strong);
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 80px;
+  }
+  .end-matter h4 {
+    font-family: var(--font-display); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--oi-ink-3);
+    margin: 0 0 12px;
+  }
+  .end-matter p {
+    margin: 0 0 6px; font-size: 13px; line-height: 1.55; color: var(--oi-ink-2);
+  }
+  .end-matter a {
+    color: inherit; text-decoration: underline; text-decoration-color: var(--oi-rule);
+    text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+  .end-matter a:hover { text-decoration-color: currentColor; color: var(--oi-brand-2); }
+  @media (max-width: 600px) {
+    .end-matter { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  /* ---------------- Footer ---------------- */
+  footer.essay-foot {
+    margin-top: 64px; padding: 24px 0 48px;
+    border-top: 1px solid var(--oi-rule);
+    display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    font-family: var(--font-display); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--oi-ink-3);
+  }
+
+  ::selection { background: var(--oi-brand-2); color: var(--oi-page-bg); }
+  @media print { .masthead, .theme-toggle, footer.essay-foot { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- ===================== MASTHEAD ===================== -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="wordmark" href="#top">plvch</a>
+    <nav class="mh-meta">
+      <span class="hide-sm">Research&nbsp;note&nbsp;·&nbsp;Vol.&nbsp;02</span>
+      <span class="hide-sm">·</span>
+      <span class="hide-sm">June&nbsp;2026</span>
+      <span class="hide-sm">·</span>
+      <span class="hide-sm">9&nbsp;min&nbsp;read</span>
+      <div class="theme-toggle" role="tablist" aria-label="Theme">
+        <button data-theme-btn="light" class="active" aria-pressed="true">Light</button>
+        <button data-theme-btn="dark"  aria-pressed="false">Dark</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== COVER ===================== -->
+<a id="top"></a>
+<div class="wrap">
+  <section class="cover col">
+    <div class="eyebrow brand">plvch · Research note</div>
+    <h1>The ETF fee paradox.</h1>
+    <p class="standfirst">
+      US investors have never had cheaper access to the market: the average ETF dollar now pays 0.13% a year. The industry, meanwhile, has moved its launch effort almost entirely to active products, with the median new fund charging 0.69%. The money is starting to follow.
+    </p>
+
+    <div class="byline">
+      <div><div class="k">Published</div><div class="v">June 2026</div></div>
+      <div><div class="k">Category</div><div class="v">Markets structure · fund economics</div></div>
+      <div><div class="k">Data</div><div class="v">62 quarters of raw SEC filings</div></div>
+      <div><div class="k">Status</div><div class="v">Open data · reproducible</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== I · THE PARADOX ===================== -->
+<div class="wrap">
+  <section class="essay">
+    <div class="col">
+      <div class="section-rule">
+        <div class="n">§ 01</div>
+        <div class="t">The shape of the market</div>
+      </div>
+
+      <div class="prose lead">
+        <p>The United States now has roughly as many ETFs as listed companies, and the two things most often written about them are both true: fund fees keep falling, and new funds keep getting more expensive. To be fair, a 0.60–0.70% median fee on recent launches is still progress relative to many older cohorts of active mutual funds. But sheer launch volume does not make the menu better, and it certainly does not make choosing from it easier for the typical investor. The contradiction sits in the word "average". This note rebuilds the full fee distribution from the primary source — every fee an ETF discloses in its prospectus and every census form it files with the SEC, from 2010 to 2026.</p>
+      </div>
+
+      <div class="stat-row col-wide">
+        <div class="stat">
+          <div class="stat-k">US '40 Act ETFs</div>
+          <div class="stat-v">3,954</div>
+          <div class="stat-c">SEC N-CEN census, trailing four quarters to 2026Q1.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Assets</div>
+          <div class="stat-v">$13.0T</div>
+          <div class="stat-c">Fiscal-year average net assets, as reported to the SEC.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">What the average dollar pays</div>
+          <div class="stat-v accent">0.13%</div>
+          <div class="stat-c">Asset-weighted net expense ratio. The median fund charges 0.50%.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-k">Industry fee revenue</div>
+          <div class="stat-v">$16.4B<span style="font-size:14px;color:var(--oi-ink-3)">/yr</span></div>
+          <div class="stat-c">Implied: each fund's assets × its net fee, summed.</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Sort the funds into five fee buckets — 3,820 of the 3,954 report both a fee and assets — and count three things for each: funds, assets, and the fee revenue those assets produce.</p>
+      </div>
+    </div>
+
+    <!-- Fig 01: fee buckets -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 01</div>
+        <div class="fig-title">Funds, assets and fee revenue by expense-ratio bucket</div>
+        <div class="fig-source">Source · SEC N-CEN + Risk/Return XBRL</div>
+      </div>
+      <div class="fig-body">
+        <div class="legend">
+          <span class="li"><span class="sw" style="background:var(--oi-ink-4)"></span>share of fund count</span>
+          <span class="li"><span class="sw" style="background:var(--oi-brand)"></span>share of assets</span>
+          <span class="li"><span class="sw" style="background:var(--oi-brand-2)"></span>share of fee revenue</span>
+        </div>
+        <div class="bk-chart">
+          <div class="bk-plot">
+            <div class="bk-grid" aria-hidden="true">
+              <div class="bk-glabel" style="bottom: 0%;">0%</div>
+              <div class="bk-gline"  style="bottom: 33.33%;"></div>
+              <div class="bk-glabel" style="bottom: 33.33%;">25%</div>
+              <div class="bk-gline"  style="bottom: 66.67%;"></div>
+              <div class="bk-glabel" style="bottom: 66.67%;">50%</div>
+              <div class="bk-gline"  style="bottom: 100%;"></div>
+              <div class="bk-glabel" style="bottom: 100%;">75%</div>
+            </div>
+            <div class="bk-groups">
+              <div class="bk-group">
+                <div class="bk-bar count" style="--h: 10.6%;"><span class="v">8%</span></div>
+                <div class="bk-bar aum"   style="--h: 97.2%;"><span class="v">73%</span></div>
+                <div class="bk-bar rev"   style="--h: 33.5%;"><span class="v">25%</span></div>
+                <span class="x">&lt; 0.10%</span>
+              </div>
+              <div class="bk-group">
+                <div class="bk-bar count" style="--h: 13.2%;"><span class="v">10%</span></div>
+                <div class="bk-bar aum"   style="--h: 13.2%;"><span class="v">10%</span></div>
+                <div class="bk-bar rev"   style="--h: 16.4%;"><span class="v">12%</span></div>
+                <span class="x">0.10–0.20%</span>
+              </div>
+              <div class="bk-group">
+                <div class="bk-bar count" style="--h: 36.8%;"><span class="v">28%</span></div>
+                <div class="bk-bar aum"   style="--h: 15.6%;"><span class="v">12%</span></div>
+                <div class="bk-bar rev"   style="--h: 40.1%;"><span class="v">30%</span></div>
+                <span class="x">0.20–0.50%</span>
+              </div>
+              <div class="bk-group">
+                <div class="bk-bar count" style="--h: 63.6%;"><span class="v">48%</span></div>
+                <div class="bk-bar aum"   style="--h: 6.9%;"><span class="v">5%</span></div>
+                <div class="bk-bar rev"   style="--h: 37.6%;"><span class="v">28%</span></div>
+                <span class="x">0.50–1.00%</span>
+              </div>
+              <div class="bk-group">
+                <div class="bk-bar count" style="--h: 9.2%;"><span class="v">7%</span></div>
+                <div class="bk-bar aum"   style="--h: 0.6%;"><span class="v">0.4%</span></div>
+                <div class="bk-bar rev"   style="--h: 5.6%;"><span class="v">4%</span></div>
+                <span class="x">&ge; 1.00%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>3,820 of 3,954 US '40 Act ETFs in the fiscal-2025 census (the rest lack a joined fee or assets). Net expense ratio per fund from prospectus Risk/Return XBRL filings; assets are fiscal-year average net assets from N-CEN. Revenue = assets × fee per fund, summed by bucket.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>Funds charging under 0.10% are <strong class="num">8% of the shelf and hold 73% of the money</strong>. This is the cheap core built by Vanguard, BlackRock and State Street, where the price war happened. Funds above 0.50% are the reverse case: more than half the shelf, about a twentieth of the money. Revenue evens the picture out. The 0.50–1.00% bucket alone earns <strong class="num">$4.6B a year</strong>, roughly as much as the entire $9.5T core.</p>
+        <p>Investors in aggregate pay very little, because the money concentrates in a few dozen cheap funds. The industry still makes three quarters of its fee income on the rest of the shelf.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== II · HISTORY ===================== -->
+<div class="wrap">
+  <section class="essay">
+    <div class="col">
+      <div class="section-rule">
+        <div class="n">§ 02</div>
+        <div class="t">Fifteen years of fees</div>
+      </div>
+      <h2 class="section-title">The price of the average fund never really fell. The price of the average dollar did.</h2>
+
+      <div class="prose">
+        <p>"ETF fees keep falling" is true of the asset-weighted average, the fee paid by the typical <em>dollar</em>. The fee charged by the typical <em>fund</em> has sat near half a percent for fifteen years and has drifted up since 2020. The two lines below come from the same prospectus filings; only the weighting differs.</p>
+      </div>
+    </div>
+
+    <!-- Fig 02: fee history -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 02</div>
+        <div class="fig-title">Median fund fee vs asset-weighted fee · 2011–2025</div>
+        <div class="fig-source">Source · SEC Risk/Return XBRL + N-CEN</div>
+      </div>
+      <div class="fig-body">
+        <div class="legend">
+          <span class="li"><span class="sw line" style="background:var(--oi-brand)"></span>median fund (what the typical ETF charges)</span>
+          <span class="li"><span class="sw line" style="background:var(--oi-brand-2)"></span>asset-weighted (what the typical dollar pays)</span>
+        </div>
+        <svg class="lc-svg" viewBox="0 0 880 320" role="img"
+             aria-label="Line chart: median ETF fee stays near 0.5 percent from 2011 to 2025 while the asset-weighted fee sits near 0.13 percent.">
+          <!-- gridlines -->
+          <g class="grid">
+            <line x1="64" y1="272" x2="856" y2="272"/>
+            <line x1="64" y1="200" x2="856" y2="200"/>
+            <line x1="64" y1="128" x2="856" y2="128"/>
+            <line x1="64" y1="56"  x2="856" y2="56"/>
+          </g>
+          <g class="axis" text-anchor="end">
+            <text x="54" y="276">0.0%</text>
+            <text x="54" y="204">0.2%</text>
+            <text x="54" y="132">0.4%</text>
+            <text x="54" y="60">0.6%</text>
+          </g>
+          <g class="axis" text-anchor="middle">
+            <text x="64"    y="296">2011</text>
+            <text x="177.1" y="296">2013</text>
+            <text x="290.3" y="296">2015</text>
+            <text x="403.4" y="296">2017</text>
+            <text x="516.6" y="296">2019</text>
+            <text x="629.7" y="296">2021</text>
+            <text x="742.9" y="296">2023</text>
+            <text x="856"   y="296">2025</text>
+          </g>
+          <!-- median fund fee -->
+          <polyline class="l-med" points="64.0,88.4 120.6,81.2 177.1,92.0 233.7,92.0 290.3,99.2 346.9,99.2 403.4,99.2 460.0,102.8 516.6,106.4 573.1,110.0 629.7,95.6 686.3,92.0 742.9,92.0 799.4,92.0 856.0,92.0"/>
+          <!-- asset-weighted fee (fund-level AUM exists from 2019) -->
+          <polyline class="l-aw" points="516.6,220.5 573.1,223.5 629.7,222.3 686.3,224.2 742.9,224.3 799.4,224.2 856.0,227.5"/>
+          <circle class="dot-med" cx="856" cy="92"    r="4"/>
+          <circle class="dot-aw"  cx="856" cy="227.5" r="4"/>
+          <!-- end labels -->
+          <g text-anchor="end">
+            <text class="lbl t-med" x="850" y="76">median fund · 0.50%</text>
+            <text class="lbl t-aw"  x="850" y="252">average dollar · 0.12%</text>
+            <text class="lbl-sub t-aw" x="850" y="266">fund-level assets reported from 2019</text>
+          </g>
+          <!-- the gap -->
+          <line class="gap-brace" x1="660" y1="110" x2="660" y2="218" stroke-dasharray="2 3"/>
+          <text class="gap-note" x="668" y="166">0.38 points apart</text>
+        </svg>
+      </div>
+      <figcaption>Net expense ratio per fund per year (net of waivers where a waiver exists, otherwise gross), from prospectus Risk/Return XBRL. Asset weighting uses fiscal-year average net assets from N-CEN, available at fund level from 2019 (2018 is omitted as partial). The fee-year-2025 panel value is 0.12%; the fiscal-2025 census snapshot used elsewhere in this note puts it at 0.13%. Pre-2019 fee history covers funds that survived to file an N-CEN census.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>Trackers with longer asset records, Morningstar and ICI among them, show the asset-weighted line falling through the 2010s before settling near current levels. The median never joined that decline. Fees compressed where investors moved their money; the rest of the shelf never repriced. And the shelf kept growing: 3,954 funds in the fiscal-2025 census against about 2,000 in 2019, with 250–670 organic launches a year against roughly 100–200 closures.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== III · LAUNCHES ===================== -->
+<div class="wrap">
+  <section class="essay">
+    <div class="col">
+      <div class="section-rule">
+        <div class="n">§ 03</div>
+        <div class="t">The launch conveyor</div>
+      </div>
+      <h2 class="section-title">Most new funds are active, and priced accordingly.</h2>
+
+      <div class="prose">
+        <p>The census marks each fund's first filing, which gives a reliable launch ledger from 2020. Launches nearly tripled between 2020 and 2025. Their composition changed more: the share that are actively managed (no index, a manager's discretion, often an options overlay) rose from 44% to 85%.</p>
+      </div>
+    </div>
+
+    <!-- Fig 03: launches stacked -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 03</div>
+        <div class="fig-title">New ETF launches per year, active vs index</div>
+        <div class="fig-source">Source · SEC N-CEN, first filings</div>
+      </div>
+      <div class="fig-body">
+        <div class="legend">
+          <span class="li"><span class="sw" style="background:var(--oi-accent)"></span>active</span>
+          <span class="li"><span class="sw" style="background:var(--oi-brand)"></span>index-tracking</span>
+        </div>
+        <div class="lm-chart">
+          <div class="lm-plot">
+            <div class="lm-grid" aria-hidden="true">
+              <div class="lm-glabel" style="bottom: 0%;">0</div>
+              <div class="lm-gline"  style="bottom: 33.33%;"></div>
+              <div class="lm-glabel" style="bottom: 33.33%;">250</div>
+              <div class="lm-gline"  style="bottom: 66.67%;"></div>
+              <div class="lm-glabel" style="bottom: 66.67%;">500</div>
+              <div class="lm-gline"  style="bottom: 100%;"></div>
+              <div class="lm-glabel" style="bottom: 100%;">750</div>
+            </div>
+            <div class="lm-bars">
+              <div class="lm-bar" style="--h: 33.3%; --act: 44.4%;">
+                <span class="v">250</span>
+                <div class="seg-act"></div><div class="seg-pas"></div>
+                <span class="x">2020<span class="share">44% active</span></span>
+              </div>
+              <div class="lm-bar" style="--h: 45.5%; --act: 56.0%;">
+                <span class="v">341</span>
+                <div class="seg-act"></div><div class="seg-pas"></div>
+                <span class="x">2021<span class="share">56%</span></span>
+              </div>
+              <div class="lm-bar" style="--h: 57.7%; --act: 64.4%;">
+                <span class="v">433</span>
+                <div class="seg-act"></div><div class="seg-pas"></div>
+                <span class="x">2022<span class="share">64%</span></span>
+              </div>
+              <div class="lm-bar" style="--h: 52.0%; --act: 67.2%;">
+                <span class="v">390</span>
+                <div class="seg-act"></div><div class="seg-pas"></div>
+                <span class="x">2023<span class="share">67%</span></span>
+              </div>
+              <div class="lm-bar" style="--h: 71.9%; --act: 73.7%;">
+                <span class="v">539</span>
+                <div class="seg-act"></div><div class="seg-pas"></div>
+                <span class="x">2024<span class="share">74%</span></span>
+              </div>
+              <div class="lm-bar" style="--h: 89.3%; --act: 85.2%;">
+                <span class="v">670</span>
+                <div class="seg-act"></div><div class="seg-pas"></div>
+                <span class="x">2025<span class="share">85% active</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>First-ever N-CEN filing per fund series, by calendar year of filing. "Active" = the fund does not report tracking an index. Counts exclude mutual-fund conversions and pre-existing funds that filed the form late (anything arriving with more than $500M of first-year assets). 2025 may still gain a few late filers; the partial 2026 cohort is excluded.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>Pricing follows the mix. The median fund launched in 2011 charged 0.53%; the median 2025 launch charges <strong class="num">0.69%</strong>, about five times what the average invested dollar pays. The decomposition matters: index launches have cost a fairly flat 0.40–0.50% throughout, while active launches drifted from about 0.55% to 0.70%. Most of the rise in the blended line comes from the mix flipping to 85% active.</p>
+      </div>
+    </div>
+
+    <!-- Fig 04: vintage fees -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 04</div>
+        <div class="fig-title">Median fee of newly launched ETFs, by vintage</div>
+        <div class="fig-source">Source · SEC Risk/Return XBRL</div>
+      </div>
+      <div class="fig-body">
+        <div class="legend">
+          <span class="li"><span class="sw line" style="background:var(--oi-brand)"></span>all launches</span>
+          <span class="li"><span class="sw line" style="background:var(--oi-accent)"></span>active launches</span>
+          <span class="li"><span class="sw line" style="background:var(--oi-brand-2)"></span>index launches</span>
+        </div>
+        <svg class="lc-svg" viewBox="0 0 880 320" role="img"
+             aria-label="Line chart: median fee of new ETFs rises from 0.53 percent in 2011 to 0.69 percent in 2025; active and index launch fees are each roughly flat, the mix shifts.">
+          <g class="grid">
+            <line x1="64" y1="272"   x2="856" y2="272"/>
+            <line x1="64" y1="221.6" x2="856" y2="221.6"/>
+            <line x1="64" y1="171.2" x2="856" y2="171.2"/>
+            <line x1="64" y1="120.8" x2="856" y2="120.8"/>
+            <line x1="64" y1="70.4"  x2="856" y2="70.4"/>
+          </g>
+          <g class="axis" text-anchor="end">
+            <text x="54" y="276">0.0%</text>
+            <text x="54" y="225.6">0.2%</text>
+            <text x="54" y="175.2">0.4%</text>
+            <text x="54" y="124.8">0.6%</text>
+            <text x="54" y="74.4">0.8%</text>
+          </g>
+          <g class="axis" text-anchor="middle">
+            <text x="64"    y="296">2011</text>
+            <text x="177.1" y="296">2013</text>
+            <text x="290.3" y="296">2015</text>
+            <text x="403.4" y="296">2017</text>
+            <text x="516.6" y="296">2019</text>
+            <text x="629.7" y="296">2021</text>
+            <text x="742.9" y="296">2023</text>
+            <text x="856"   y="296">2025</text>
+          </g>
+          <polyline class="l-act" opacity="0.85" points="64.0,133.4 120.6,95.6 177.1,120.8 233.7,35.1 290.3,70.4 346.9,115.8 403.4,133.4 460.0,171.2 516.6,72.9 573.1,83.0 629.7,98.1 686.3,108.2 742.9,105.7 799.4,98.1 856.0,95.6"/>
+          <polyline class="l-pas" opacity="0.85" points="64.0,138.4 120.6,123.3 177.1,172.5 233.7,133.4 290.3,158.6 346.9,156.1 403.4,183.8 460.0,158.6 516.6,172.5 573.1,181.3 629.7,146.0 686.3,146.0 742.9,183.8 799.4,146.0 856.0,147.3"/>
+          <polyline class="l-med" points="64.0,138.4 120.6,123.3 177.1,158.6 233.7,120.8 290.3,158.6 346.9,147.3 403.4,171.2 460.0,162.4 516.6,146.0 573.1,120.8 629.7,120.8 686.3,123.3 742.9,125.8 799.4,108.2 856.0,98.1"/>
+          <circle class="dot-med" cx="856" cy="98.1" r="4"/>
+          <text class="lbl t-act" x="233.7" y="34" text-anchor="middle">active launches</text>
+          <text class="lbl t-pas" x="742.9" y="202" text-anchor="middle">index launches</text>
+          <text class="lbl t-med" x="850" y="78" text-anchor="end">all launches · 0.69%</text>
+        </svg>
+      </div>
+      <figcaption>First fee observation per fund, grouped by the year of that observation — a close proxy for launch year, since prospectus fees are filed at registration. Net of waivers where a waiver exists. Early active cohorts are small (active ETFs were rare before 2016), hence the noise in that line. Pre-2018 vintages include only funds that survived into the N-CEN era.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>For the investor this is, so far, a story about the shelf rather than the portfolio: index funds still hold fourteen of every fifteen dollars. But the active side is compounding. Active ETFs held <strong class="num">$44B</strong> in mid-2019 and hold <strong class="num">$872B</strong> now, a twentyfold rise over a period in which index assets grew two and a half times. Each of those dollars also earns the sponsor more: at current fees, active funds collect about a quarter of industry revenue on 6.7% of assets.</p>
+      </div>
+    </div>
+
+    <!-- Fig 05: active build-out -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 05</div>
+        <div class="fig-title">Active ETFs: share of funds vs share of assets · 2019–2026</div>
+        <div class="fig-source">Source · SEC N-CEN</div>
+      </div>
+      <div class="fig-body">
+        <div class="legend">
+          <span class="li"><span class="sw line" style="background:var(--oi-accent)"></span>active share of fund count</span>
+          <span class="li"><span class="sw line" style="background:var(--oi-brand-2)"></span>active share of assets</span>
+        </div>
+        <svg class="lc-svg" viewBox="0 0 880 320" role="img"
+             aria-label="Line chart: active funds rise from 16 to 52 percent of ETF count between 2019 and 2026, but only from 1 to 6.7 percent of assets.">
+          <g class="grid">
+            <line x1="64" y1="272" x2="856" y2="272"/>
+            <line x1="64" y1="209" x2="856" y2="209"/>
+            <line x1="64" y1="146" x2="856" y2="146"/>
+            <line x1="64" y1="83"  x2="856" y2="83"/>
+          </g>
+          <g class="axis" text-anchor="end">
+            <text x="54" y="276">0%</text>
+            <text x="54" y="213">15%</text>
+            <text x="54" y="150">30%</text>
+            <text x="54" y="87">45%</text>
+          </g>
+          <g class="axis" text-anchor="middle">
+            <text x="152"   y="296">2020</text>
+            <text x="269.3" y="296">2021</text>
+            <text x="386.7" y="296">2022</text>
+            <text x="504"   y="296">2023</text>
+            <text x="621.3" y="296">2024</text>
+            <text x="738.7" y="296">2025</text>
+            <text x="856"   y="296">2026</text>
+          </g>
+          <polyline class="l-act" points="64.0,206.2 93.3,212.8 122.7,212.1 152.0,209.0 181.3,207.2 210.7,206.5 240.0,197.3 269.3,189.1 298.7,188.3 328.0,182.7 357.3,172.5 386.7,160.1 416.0,158.5 445.3,150.8 474.7,141.4 504.0,135.7 533.3,131.9 562.7,126.1 592.0,121.5 621.3,112.0 650.7,110.3 680.0,106.7 709.3,101.0 738.7,84.7 768.0,82.1 797.3,74.0 826.7,71.3 856.0,54.8"/>
+          <polyline class="l-pas" points="64.0,268.3 93.3,268.3 122.7,266.4 152.0,266.1 181.3,265.6 210.7,267.2 240.0,266.7 269.3,266.1 298.7,265.6 328.0,264.0 357.3,261.8 386.7,260.2 416.0,260.1 445.3,259.3 474.7,259.1 504.0,256.8 533.3,256.5 562.7,256.0 592.0,255.5 621.3,254.2 650.7,254.4 680.0,252.7 709.3,251.0 738.7,249.6 768.0,249.8 797.3,247.8 826.7,247.9 856.0,243.9"/>
+          <circle cx="856" cy="54.8"  r="4" style="fill:var(--oi-accent)"/>
+          <circle cx="856" cy="243.9" r="4" style="fill:var(--oi-brand-2)"/>
+          <g text-anchor="end">
+            <text class="lbl t-act" x="850" y="42">52% of funds</text>
+            <text class="lbl t-pas" x="850" y="232">6.7% of assets · $872B</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Trailing-four-quarter census windows, 2019Q2–2026Q1. Active = the fund does not report tracking an index. Assets are fiscal-year average net assets; the active total includes conversions.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>Half the shelf, a fifteenth of the money. The natural question is who is doing the launching.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== IV · SPONSORS ===================== -->
+<div class="wrap">
+  <section class="essay">
+    <div class="col">
+      <div class="section-rule">
+        <div class="n">§ 04</div>
+        <div class="t">The giants' new shelf</div>
+      </div>
+      <h2 class="section-title">Eight of the ten largest sponsors launch above their own book.</h2>
+
+      <div class="prose">
+        <p>It would be tidy if the expensive shelf belonged to boutiques while the giants tended the core. The ledger says otherwise. For each of the ten largest sponsors, the chart compares the asset-weighted fee of the funds it ran before 2020 with the median fee of what it has launched since. Mutual funds converted into ETFs, a large flow at Dimensional, JPMorgan and Fidelity, are excluded along with other transfers of existing assets; what remains is new product.</p>
+      </div>
+    </div>
+
+    <!-- Fig 06: dumbbells -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 06</div>
+        <div class="fig-title">Incumbent book fee vs median fee of 2020–25 launches</div>
+        <div class="fig-source">Source · SEC N-CEN + Risk/Return XBRL</div>
+      </div>
+      <div class="fig-body">
+        <div class="legend">
+          <span class="li"><span class="sw" style="background:var(--oi-brand);border-radius:50%;width:10px;height:10px"></span>fee of the pre-2020 book</span>
+          <span class="li"><span class="sw" style="background:var(--oi-brand-2);width:18px;height:2.5px;clip-path:polygon(0 40%,72% 40%,72% 0,100% 50%,72% 100%,72% 60%,0 60%)"></span>→ median fee of new launches</span>
+          <span class="li"><span class="sw" style="background:var(--oi-ink-3);width:18px;height:2.5px;clip-path:polygon(100% 40%,28% 40%,28% 0,0 50%,28% 100%,28% 60%,100% 60%)"></span>← launches priced below book</span>
+        </div>
+        <div class="db">
+          <div class="db-row">
+            <div class="db-name">Vanguard <small>$7.0T · 11 launches</small></div>
+            <div class="db-track" style="--a: 4.4%; --b: 11.1%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.04</span>
+              <span class="db-val launch below">0.10</span>
+              <span class="db-note" style="left: 16%;">book → new launches</span>
+            </div>
+            <div class="db-mult">2.4×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">BlackRock · iShares <small>$3.0T · 155 launches</small></div>
+            <div class="db-track" style="--a: 16.7%; --b: 22.2%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.15</span>
+              <span class="db-val launch below">0.20</span>
+            </div>
+            <div class="db-mult">1.3×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">State Street · SPDR <small>$741B · 35 launches</small></div>
+            <div class="db-track" style="--a: 13.3%; --b: 16.7%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.12</span>
+              <span class="db-val launch below">0.15</span>
+            </div>
+            <div class="db-mult">1.3×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">Schwab <small>$412B · 9 launches</small></div>
+            <div class="db-track down" style="--a: 7.8%; --b: 5.6%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book below">0.07</span>
+              <span class="db-val launch">0.05</span>
+            </div>
+            <div class="db-mult down">0.7×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">Invesco <small>$314B · 58 launches</small></div>
+            <div class="db-track down" style="--a: 31.1%; --b: 24.4%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.28</span>
+              <span class="db-val launch below">0.22</span>
+            </div>
+            <div class="db-mult down">0.8×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">Dimensional <small>$192B · 25 launches</small></div>
+            <div class="db-track" style="--a: 22.2%; --b: 26.7%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.20</span>
+              <span class="db-val launch below">0.24</span>
+            </div>
+            <div class="db-mult">1.2×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">JPMorgan <small>$186B · 43 launches</small></div>
+            <div class="db-track" style="--a: 21.1%; --b: 38.9%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.19</span>
+              <span class="db-val launch">0.35</span>
+            </div>
+            <div class="db-mult">1.8×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">First Trust <small>$150B · 156 launches</small></div>
+            <div class="db-track" style="--a: 70.0%; --b: 94.4%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.63</span>
+              <span class="db-val launch">0.85</span>
+            </div>
+            <div class="db-mult">1.3×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">VanEck <small>$91B · 28 launches</small></div>
+            <div class="db-track" style="--a: 46.7%; --b: 54.4%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.42</span>
+              <span class="db-val launch">0.49</span>
+            </div>
+            <div class="db-mult">1.2×</div>
+          </div>
+          <div class="db-row">
+            <div class="db-name">Fidelity <small>$90B · 40 launches</small></div>
+            <div class="db-track" style="--a: 21.1%; --b: 51.1%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.19</span>
+              <span class="db-val launch">0.46</span>
+            </div>
+            <div class="db-mult">2.4×</div>
+          </div>
+          <div class="db-row mkt">
+            <div class="db-name">Whole market <small>average dollar → median launch</small></div>
+            <div class="db-track" style="--a: 14.4%; --b: 66.7%;">
+              <div class="db-link"></div><span class="db-arrow"></span><span class="db-dot"></span>
+              <span class="db-val book">0.13</span>
+              <span class="db-val launch">0.60</span>
+            </div>
+            <div class="db-mult">4.6×</div>
+          </div>
+          <div class="db-axis">
+            <div></div>
+            <div class="scale">
+              <span style="left: 0%;">0%</span>
+              <span style="left: 33.3%;">0.30%</span>
+              <span style="left: 66.7%;">0.60%</span>
+              <span style="left: 100%;">0.90%</span>
+            </div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Top 10 sponsors by current AUM, in %; the right-hand column is the launch fee as a multiple of the book fee. Book = asset-weighted net fee today of the sponsor's funds first filed before 2020, conversions and other transfers included; launch fee = median first-observed net fee of organic 2020–25 launches (across the market, 78 first filings arriving with over $500M of assets are treated as transfers, not launches). Bottom row: the market-wide asset-weighted fee against the market-wide median launch.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>Eight of the ten price new product above their existing book. The exceptions are the two retail price-fighters, Schwab and Invesco. The step is smallest where the cheap-core franchise is largest: Vanguard's eleven launches in six years come in at a median 0.10%. It is widest where the sponsor is building an active franchise: JPMorgan launches at 0.35% and Fidelity at 0.46%, each more than twice its book.</p>
+      </div>
+    </div>
+
+    <!-- Fig 07: revenue table -->
+    <figure class="fig col-wide">
+      <div class="fig-head">
+        <div class="fig-num">Figure 07</div>
+        <div class="fig-title">What 2020–25 launches contribute today: assets vs fee revenue</div>
+        <div class="fig-source">Source · SEC N-CEN + Risk/Return XBRL</div>
+      </div>
+      <div class="fig-body tbl-scroll">
+        <table class="spon">
+          <thead>
+            <tr>
+              <th>Sponsor</th>
+              <th>Launches '20–'25</th>
+              <th>Median launch fee</th>
+              <th>Share of sponsor's AUM</th>
+              <th>Share of sponsor's revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Vanguard</td><td>11</td><td>0.10%</td><td>0.1%</td><td class="hi">0.2%</td></tr>
+            <tr><td>BlackRock · iShares</td><td>155</td><td>0.20%</td><td>1.3%</td><td class="hi">2.0%</td></tr>
+            <tr><td>State Street · SPDR</td><td>35</td><td>0.15%</td><td>0.9%</td><td class="hi">1.4%</td></tr>
+            <tr><td>Schwab</td><td>9</td><td>0.05%</td><td>3.4%</td><td class="hi">1.8%</td></tr>
+            <tr><td>Invesco</td><td>58</td><td>0.22%</td><td>3.6%</td><td class="hi">2.4%</td></tr>
+            <tr><td>Dimensional</td><td>25</td><td>0.24%</td><td>25.1%</td><td class="hi">31.2%</td></tr>
+            <tr><td>JPMorgan</td><td>43</td><td>0.35%</td><td>52.1%</td><td class="hi">65.4%</td></tr>
+            <tr><td>First Trust</td><td>156</td><td>0.85%</td><td>29.1%</td><td class="hi">34.9%</td></tr>
+            <tr><td>VanEck</td><td>28</td><td>0.49%</td><td>2.3%</td><td class="hi">2.4%</td></tr>
+            <tr><td>Fidelity</td><td>40</td><td>0.46%</td><td>11.6%</td><td class="hi">23.1%</td></tr>
+            <tr class="mkt"><td>All '40 Act ETFs</td><td>2,623</td><td>0.60%</td><td>4.3%</td><td>15.4%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figcaption>Current fiscal-2025 assets and implied fee revenue of funds organically launched 2020–2025, as a share of each sponsor's totals. Conversions and transfers count as incumbent book; 2026 first-filers are excluded on both sides. Launch fees are taken within two years of the first census filing; coverage 97.4% of 2,623 launches.</figcaption>
+    </figure>
+
+    <div class="col">
+      <div class="prose">
+        <p>Funds launched in 2020–25 hold 4% of industry assets and already earn 15% of industry fees. At JPMorgan they are most of the business: JEPI and JEPQ, the 0.35% options-income pair launched in 2020 and 2022, hold about <span class="num">$58B</span> between them, and the post-2020 range produces <strong class="num">two thirds of the firm's ETF fee income</strong>. Fidelity's launches produce 23% of its fee income on 12% of its assets; First Trust earns a third of its fees on launches priced at a median 0.85%. Even at Vanguard and BlackRock, where new funds barely register, the revenue share runs ahead of the asset share.</p>
+        <p>None of this required repricing the old funds. The old funds stay cheap, and the new revenue is built beside them.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== V · TAKEAWAYS ===================== -->
+<div class="wrap">
+  <section class="essay">
+    <div class="col">
+      <div class="section-rule">
+        <div class="n">§ 05</div>
+        <div class="t">If you hold ETFs</div>
+      </div>
+      <h2 class="section-title">What this means if you hold ETFs.</h2>
+
+      <div class="takeaways">
+        <div class="tk">
+          <div class="n">01</div>
+          <div>
+            <h3>The 0.13% average is something you opt into.</h3>
+            <p>It exists because most money sits in a few dozen funds priced under 0.10%, and that price is open to anyone. The median fund still charges 0.50%; nothing about the trend moves your money to the cheap side on its own.</p>
+          </div>
+        </div>
+        <div class="tk">
+          <div class="n">02</div>
+          <div>
+            <h3>New funds are priced like active management, because most of them are.</h3>
+            <p>The median 2025 launch charges 0.69%, and 85% of launches are active. A brand known for cheap funds tells you little about its new ones: Fidelity's pre-2020 book averages 0.19%, its launches since come in at 0.46%.</p>
+          </div>
+        </div>
+        <div class="tk">
+          <div class="n">03</div>
+          <div>
+            <h3>The discount sits in the old funds.</h3>
+            <p>The funds the price war repriced are the older, larger ones. When offered a new fund, the useful comparison is the incumbent in the same family with similar exposure, which is usually several times cheaper.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Methods -->
+      <div class="methods">
+        <h4>Methods &amp; caveats</h4>
+        <p>Everything above is computed from raw SEC structured datasets — no commercial fund databases. Universe and assets: Form N-CEN census filings, 2018Q3–2026Q1 (fund counts use trailing-four-quarter windows; assets are fiscal-year average net assets). Fees: prospectus Risk/Return XBRL summaries, 2010Q4–2026Q1; a fund's fee is the net expense ratio where a fee waiver exists, otherwise the gross ratio, taken as the median across share-class values of the latest filing. Launches: a fund's first-ever N-CEN filing (reliable from 2020). Sponsor brands group the SEC's legal trusts (e.g. five iShares trusts → BlackRock).</p>
+        <ul>
+          <li>The universe is '40 Act ETFs. ETFs organized as unit investment trusts (SPY, QQQ, DIA — roughly $1.1T, all cheap and passive) and '33 Act trusts (crypto, gold) file no fund-level census and are excluded; including them would push the asset-weighted fee and the concentration further in the directions shown.</li>
+          <li>Vanguard series blend ETF and mutual-fund share classes; Vanguard's AUM is overstated and its figures blend classes. Its asset-weighted fee here (0.04%) sits slightly below the published ETF-class average (~0.05–0.07%).</li>
+          <li>"Organic" launches exclude 78 first filings that arrived with more than $500M of first-fiscal-year assets: mutual-fund conversions (Dimensional's range, several JPMorgan and Fidelity funds), funds adopted from other issuers, and pre-existing funds whose trusts filed their first census late (the form dates from 2019). The rule will also catch a rare organic launch that grew that fast in its first year.</li>
+          <li>Asset-weighted fees here (0.13%) run a couple of basis points below Morningstar's published 0.15–0.16%, explained by the two caveats above. Counts, assets, and launch mix reconcile with published industry totals.</li>
+          <li>Implied revenue = assets × net fee; it ignores securities-lending income, which subsidizes some cheap funds.</li>
+        </ul>
+        <p>Data and pipeline: SEC DERA <a href="https://www.sec.gov/dera/data" style="color:inherit">structured data sets</a> (N-CEN, N-PORT, Risk/Return). Analysis code reproducible from the raw quarterly files.</p>
+
+        <h4 style="margin-top:28px">Disclaimer</h4>
+        <p>This is independent research commentary, written for general information. It is not investment advice, an offer, or a recommendation to buy, sell or hold any security, and it takes no account of anyone's individual circumstances. A fund's fee is one attribute among many; nothing here implies that any fund named is a good or bad investment.</p>
+        <p>All figures are the author's calculations from public SEC filings, may contain errors, and describe a moment in time — fees, assets and product lineups change. Sponsor, fund and index names (Vanguard, BlackRock, iShares, State Street, SPDR, Schwab, Invesco, Dimensional, JPMorgan, First Trust, VanEck, Fidelity, JEPI, JEPQ and others) are trademarks of their respective owners and are used for identification only; nothing here implies affiliation with, or endorsement by, any of these firms. If you find an error in the data or the method, the underlying filings are public and the author would rather hear about it than not.</p>
+      </div>
+    </div>
+  </section>
+
+  <aside class="end-matter col-wide" aria-label="About and contact">
+    <div>
+      <h4>About this essay</h4>
+      <p>Just a blog note. More on <a href="https://plvch.com">plvch.com</a>.</p>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>m(at)plvch.com</p>
+      <p>Berlin</p>
+    </div>
+  </aside>
+
+  <footer class="essay-foot col-wide">
+    <div>© 2026 plvch · all rights reserved</div>
+    <div>Vol.&nbsp;02 · Research note · The ETF Fee Paradox</div>
+    <div>01 / 01</div>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var stored = null;
+    try { stored = localStorage.getItem('oi-theme'); } catch (e) {}
+    if (stored === 'dark' || stored === 'light') root.setAttribute('data-theme', stored);
+
+    function syncButtons() {
+      var t = root.getAttribute('data-theme') || 'light';
+      document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+        var active = b.getAttribute('data-theme-btn') === t;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+    syncButtons();
+    document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var t = b.getAttribute('data-theme-btn');
+        root.setAttribute('data-theme', t);
+        try { localStorage.setItem('oi-theme', t); } catch (e) {}
+        syncButtons();
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
